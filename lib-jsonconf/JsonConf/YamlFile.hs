@@ -23,10 +23,10 @@ make action = do
   keyMap :: KeyMap Value <- action
   pure
     JsonConf
-      { lookupSection_ = \sectionKey -> do
+      { lookupSectionWith_ = \parser sectionKey -> do
           case Data.Aeson.KeyMap.lookup sectionKey keyMap of
             Nothing -> throwIO do JsonConfMissingSection sectionKey
-            Just foo -> case fromJSON foo of
+            Just foo -> case parse parser foo of
               Error message -> throwIO do JsonConfUnparseableSection sectionKey message
               Success confSection -> pure confSection
       }
