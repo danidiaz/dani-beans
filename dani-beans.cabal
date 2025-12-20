@@ -1,4 +1,4 @@
-cabal-version:      3.0
+cabal-version:      3.4
 name:               dani-beans
 version:            0.1.0.0
 -- synopsis:
@@ -15,32 +15,88 @@ extra-doc-files:    CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
+common language
+    default-language: GHC2021
+
+common base
+    build-depends:
+        base       >= 4.16.0.0 && < 5,
+
 library threadlocal
+    import:           
+        language,
+        warnings,
+        base
     exposed-modules:  
         ThreadLocal
     build-depends:
-        base,
         text,
         bytestring,
         containers,
         unordered-containers,
     hs-source-dirs:   lib-threadlocal
-    default-language: GHC2021
     ghc-options: -threaded
     visibility:      public
 
 library jsonconf
+    import:           
+        language,
+        warnings,
+        base
     exposed-modules:  
         JsonConf
         JsonConf.YamlFile
     build-depends:
-        base,
         text,
         bytestring,
         containers,
         aeson,
         yaml,
     hs-source-dirs:   lib-jsonconf
-    default-language: GHC2021
     ghc-options: -threaded
     visibility:      public
+
+library wai
+    import:           
+        language,
+        warnings,
+        base
+    import:           language
+    exposed-modules:
+        Network.Wai.Bean
+    build-depends:
+        wai
+    hs-source-dirs:   lib-wai
+    visibility: public
+
+library warp
+    import:           
+        language,
+        warnings,
+        base
+    import:           language
+    exposed-modules:
+        Network.Wai.Handler.Warp.Runner
+    build-depends:
+        dani-beans:wai,
+        wai,
+        aeson,
+        warp,
+    hs-source-dirs:   lib-warp
+    visibility: public
+
+library resource-pool
+    import:           
+        language,
+        warnings,
+        base
+    hs-source-dirs:   lib-resource-pool
+    exposed-modules:
+        Data.Pool.Introspection.Bean
+    build-depends:
+        aeson >= 2.2 && < 2.3,
+        resource-pool >= 0.4,
+        text       >= 2.0,
+
+    ghc-options:      -Wall -fwarn-tabs
+    visibility: public
