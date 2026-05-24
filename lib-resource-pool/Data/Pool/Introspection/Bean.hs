@@ -19,7 +19,7 @@ import Data.Pool.Introspection qualified as Pool
 import Data.Text
 import GHC.Generics (Generic)
 
-data PoolConf = MakePoolConf
+data PoolConfig = MakePoolConfig
   { poolSize :: Int
   }
   deriving stock (Generic)

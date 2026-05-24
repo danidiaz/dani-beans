@@ -38,21 +38,21 @@ library thread-local
     ghc-options: -threaded
     visibility:      public
 
-library json-configuration
-    import:           
+library json-config
+    import:
         language,
         warnings,
         base
     exposed-modules:
-        JsonConfiguration
-        JsonConfiguration.YamlFile
+        JsonConfig
+        JsonConfig.YamlFile
     build-depends:
         text,
         bytestring,
         containers,
         aeson,
         yaml,
-    hs-source-dirs:   lib-json-configuration
+    hs-source-dirs:   lib-json-config
     ghc-options: -threaded
     visibility:      public
 
@@ -63,7 +63,7 @@ library wai
         base
     import:           language
     exposed-modules:
-        Network.Wai.Bean
+        Network.Wai.Application
     build-depends:
         wai,
     hs-source-dirs:   lib-wai

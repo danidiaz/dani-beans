@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
-module Network.Wai.Bean
+module Network.Wai.Application
   ( Application (..),
     Middleware (..),
     applyMiddleware,

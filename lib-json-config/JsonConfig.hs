@@ -1,7 +1,7 @@
 {-# LANGUAGE NoFieldSelectors #-}
 
-module JsonConfiguration
-  ( JsonConfiguration (..),
+module JsonConfig
+  ( JsonConfig (..),
     lookupSection,
     lookupSectionWith,
     MissingSection (..),
@@ -14,15 +14,15 @@ import Control.Exception
 import Data.Aeson
 import Data.Aeson.Types (Parser)
 
-data JsonConfiguration = MakeJsonConfiguration
+data JsonConfig = MakeJsonConfig
   { lookupSectionWith_ :: forall conf. (Value -> Parser conf) -> Key -> IO conf
   }
 
-lookupSection :: forall conf. (FromJSON conf) => Key -> JsonConfiguration -> IO conf
-lookupSection key (MakeJsonConfiguration {lookupSectionWith_}) = lookupSectionWith_ parseJSON key
+lookupSection :: forall conf. (FromJSON conf) => Key -> JsonConfig -> IO conf
+lookupSection key (MakeJsonConfig {lookupSectionWith_}) = lookupSectionWith_ parseJSON key
 
-lookupSectionWith :: forall conf. (Value -> Parser conf) -> Key -> JsonConfiguration -> IO conf
-lookupSectionWith parser key (MakeJsonConfiguration {lookupSectionWith_}) = lookupSectionWith_ parser key
+lookupSectionWith :: forall conf. (Value -> Parser conf) -> Key -> JsonConfig -> IO conf
+lookupSectionWith parser key (MakeJsonConfig {lookupSectionWith_}) = lookupSectionWith_ parser key
 
 data MissingSection = MissingSection Key deriving (Show)
 

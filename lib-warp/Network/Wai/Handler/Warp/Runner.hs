@@ -4,7 +4,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 
 module Network.Wai.Handler.Warp.Runner
-  ( RunnerConfiguration (..),
+  ( RunnerConfig (..),
     makeSettings,
     Settings,
     Runner (..),
@@ -18,7 +18,7 @@ import Data.Aeson
 import Data.String (fromString)
 import Data.Text qualified as Text
 import GHC.Generics (Generic)
-import Network.Wai.Bean
+import Network.Wai.Application
 import Network.Wai.Handler.Warp (Settings, defaultSettings, 
           setPort, 
           setHost,
@@ -26,30 +26,30 @@ import Network.Wai.Handler.Warp (Settings, defaultSettings,
 import Network.Wai.Handler.Warp qualified
 import Data.Function ((&))
 
-data RunnerConfiguration = MakeRunnerConfiguration
+data RunnerConfig = MakeRunnerConfig
   { port :: Maybe Int,
     host :: Maybe HostPreference
   }
   deriving stock (Generic)
 
-instance FromJSON RunnerConfiguration where
-  parseJSON = withObject "RunnerConfiguration" \o -> do
+instance FromJSON RunnerConfig where
+  parseJSON = withObject "RunnerConfig" \o -> do
     port <- o .:? fromString "port"
     hostText <- o .:? fromString "host"
-    pure MakeRunnerConfiguration
+    pure MakeRunnerConfig
       { port,
         host = fromString . Text.unpack <$> hostText
       }
 
-instance ToJSON RunnerConfiguration where
-  toJSON MakeRunnerConfiguration {port, host} =
+instance ToJSON RunnerConfig where
+  toJSON MakeRunnerConfig {port, host} =
     object
       [ fromString "port" .= port,
         fromString "host" .= (Text.pack . show <$> host)
       ]
 
-makeSettings :: RunnerConfiguration -> Settings
-makeSettings MakeRunnerConfiguration { port, host } = 
+makeSettings :: RunnerConfig -> Settings
+makeSettings MakeRunnerConfig { port, host } = 
   defaultSettings 
   & maybe id setPort port
   & maybe id setHost host
@@ -69,5 +69,6 @@ make
 run :: Runner -> IO ()
 run MakeRunner {_run} = _run
 
+-- | Likely useless, better decorate the 'Application' instead.
 decorate :: (forall x. IO x -> IO x) -> Runner -> Runner
 decorate f MakeRunner {_run} = MakeRunner {_run = f _run}
