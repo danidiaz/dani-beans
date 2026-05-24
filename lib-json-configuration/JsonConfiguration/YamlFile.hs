@@ -8,8 +8,6 @@ where
 
 import JsonConfiguration
 import Control.Exception
-import Control.Monad.IO.Class
-import Data.Aeson (Value)
 import Data.Aeson.KeyMap (KeyMap)
 import Data.Aeson.KeyMap qualified
 import Data.Aeson.Types
@@ -22,7 +20,7 @@ make ::
 make action = do
   keyMap :: KeyMap Value <- action
   pure
-    JsonConfiguration
+    MakeJsonConfiguration
       { lookupSectionWith_ = \parser sectionKey -> do
           case Data.Aeson.KeyMap.lookup sectionKey keyMap of
             Nothing -> throwIO do MissingSection sectionKey

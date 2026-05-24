@@ -14,15 +14,15 @@ import Control.Exception
 import Data.Aeson
 import Data.Aeson.Types (Parser)
 
-data JsonConfiguration = JsonConfiguration
+data JsonConfiguration = MakeJsonConfiguration
   { lookupSectionWith_ :: forall conf. (Value -> Parser conf) -> Key -> IO conf
   }
 
 lookupSection :: forall conf. (FromJSON conf) => Key -> JsonConfiguration -> IO conf
-lookupSection key (JsonConfiguration {lookupSectionWith_}) = lookupSectionWith_ parseJSON key
+lookupSection key (MakeJsonConfiguration {lookupSectionWith_}) = lookupSectionWith_ parseJSON key
 
 lookupSectionWith :: forall conf. (Value -> Parser conf) -> Key -> JsonConfiguration -> IO conf
-lookupSectionWith parser key (JsonConfiguration {lookupSectionWith_}) = lookupSectionWith_ parser key
+lookupSectionWith parser key (MakeJsonConfiguration {lookupSectionWith_}) = lookupSectionWith_ parser key
 
 data MissingSection = MissingSection Key deriving (Show)
 

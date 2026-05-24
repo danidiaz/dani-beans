@@ -7,9 +7,9 @@ module ThreadLocal
   ( ThreadLocal (..),
     makeThreadLocal,
     withThreadLocal,
-    ThreadLocalValueAlreadyExists (..),
+    ValueAlreadyExists (..),
     readThreadLocal,
-    ThreadLocalValueMissing (..),
+    ValueMissing (..),
   )
 where
 
@@ -40,7 +40,7 @@ withThreadLocal (MakeThreadLocal ref) v action = do
                 Nothing -> do
                   ((), Just v)
                 Just _ -> do
-                  let ex = MakeThreadLocalValueAlreadyExists threadId (typeRep (Proxy @v))
+                  let ex = MakeValueAlreadyExists threadId (typeRep (Proxy @v))
                   (throw ex, Nothing)
           let r = Map.alterF alteration threadId theMap
           swap r
@@ -61,8 +61,8 @@ withThreadLocal (MakeThreadLocal ref) v action = do
           evaluate u
           action
 
-data ThreadLocalValueAlreadyExists where
-  MakeThreadLocalValueAlreadyExists :: ThreadId -> TypeRep -> ThreadLocalValueAlreadyExists
+data ValueAlreadyExists where
+  MakeValueAlreadyExists :: ThreadId -> TypeRep -> ValueAlreadyExists
   deriving stock (Show)
   deriving anyclass (Exception)
 
@@ -72,11 +72,11 @@ readThreadLocal (MakeThreadLocal ref) = do
   theMap <- readIORef ref
   case Map.lookup threadId theMap of
     Nothing ->
-      throwIO do MakeThreadLocalValueMissing threadId (typeRep (Proxy @v))
+      throwIO do MakeValueMissing threadId (typeRep (Proxy @v))
     Just v -> pure v
 
-data ThreadLocalValueMissing where
-  MakeThreadLocalValueMissing :: ThreadId -> TypeRep -> ThreadLocalValueMissing
+data ValueMissing where
+  MakeValueMissing :: ThreadId -> TypeRep -> ValueMissing
   deriving stock (Show)
   deriving anyclass (Exception)
 

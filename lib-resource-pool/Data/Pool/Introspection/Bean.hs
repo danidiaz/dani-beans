@@ -19,13 +19,13 @@ import Data.Pool.Introspection qualified as Pool
 import Data.Text
 import GHC.Generics (Generic)
 
-data PoolConf = PoolConf
+data PoolConf = MakePoolConf
   { poolSize :: Int
   }
   deriving stock (Generic)
   deriving anyclass (FromJSON, ToJSON)
 
 make :: forall r. IO r -> (r -> IO ()) -> PoolConf -> forall x. (Pool.Pool r -> IO x) -> IO x
-make alloc dealloc PoolConf {poolSize} continuation = do
+make alloc dealloc MakePoolConf {poolSize} continuation = do
   let poolConfig = Pool.defaultPoolConfig alloc dealloc 3600 poolSize
   bracket (Pool.newPool poolConfig) Pool.destroyAllResources continuation
