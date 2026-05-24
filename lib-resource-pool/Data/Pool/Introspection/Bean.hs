@@ -3,12 +3,13 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NumDecimals #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
 module Data.Pool.Introspection.Bean
   ( PoolConfig (..),
     Pool.Pool,
-    Pool.Resource (..),
+    Pool.Resource,
     make,
   )
 where
@@ -25,7 +26,8 @@ import GHC.Generics (Generic)
 data PoolConfig = MakePoolConfig
   { poolSize :: Int,
     unusedResourceTtlSeconds :: Double,
-    numStripes :: Maybe Int
+    numStripes :: Maybe Int,
+    poolLabel :: Maybe Text
   }
   deriving stock (Generic)
 
@@ -34,18 +36,21 @@ instance FromJSON PoolConfig where
     poolSize <- o .: fromString "pool_size"
     unusedResourceTtlSeconds <- o .: fromString "unused_resource_ttl_seconds"
     numStripes <- o .:? fromString "num_stripes"
-    pure MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes}
+    poolLabel <- o .:? fromString "pool_label"
+    pure MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes, poolLabel}
 
 instance ToJSON PoolConfig where
-  toJSON MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes} =
+  toJSON MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes, poolLabel} =
     object
       [ fromString "pool_size" .= poolSize,
         fromString "unused_resource_ttl_seconds" .= unusedResourceTtlSeconds,
-        fromString "num_stripes" .= numStripes
+        fromString "num_stripes" .= numStripes,
+        fromString "pool_label" .= poolLabel
       ]
 
 make :: forall r. IO r -> (r -> IO ()) -> PoolConfig -> forall x. (Pool.Pool r -> IO x) -> IO x
-make alloc dealloc MakePoolConfig {unusedResourceTtlSeconds, poolSize, numStripes} continuation = do
-  let poolConfig = Pool.setNumStripes numStripes
-                     (Pool.defaultPoolConfig alloc dealloc unusedResourceTtlSeconds poolSize)
+make alloc dealloc MakePoolConfig {unusedResourceTtlSeconds, poolSize, numStripes, poolLabel} continuation = do
+  let poolConfig = maybe id Pool.setPoolLabel poolLabel
+                     $ Pool.setNumStripes numStripes
+                     $ Pool.defaultPoolConfig alloc dealloc unusedResourceTtlSeconds poolSize
   bracket (Pool.newPool poolConfig) Pool.destroyAllResources continuation
