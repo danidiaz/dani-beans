@@ -65,7 +65,7 @@ library wai
     exposed-modules:
         Network.Wai.Bean
     build-depends:
-        wai
+        wai,
     hs-source-dirs:   lib-wai
     visibility: public
 
@@ -81,6 +81,7 @@ library warp
         dani-beans:wai,
         wai,
         aeson,
+        text,
         warp,
     hs-source-dirs:   lib-warp
     visibility: public

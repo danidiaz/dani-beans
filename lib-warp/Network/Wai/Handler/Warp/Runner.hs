@@ -4,39 +4,70 @@
 {-# LANGUAGE DerivingStrategies #-}
 
 module Network.Wai.Handler.Warp.Runner
-  ( RunnerConf (..),
+  ( RunnerConfiguration (..),
+    makeSettings,
+    Settings,
     Runner (..),
-    makeRunner,
+    make,
     decorate,
     run,
   )
 where
 
 import Data.Aeson
+import Data.String (fromString)
+import Data.Text qualified as Text
 import GHC.Generics (Generic)
 import Network.Wai.Bean
+import Network.Wai.Handler.Warp (Settings, defaultSettings, 
+          setPort, 
+          setHost,
+          HostPreference)
 import Network.Wai.Handler.Warp qualified
+import Data.Function ((&))
 
-data RunnerConf = RunnerConf
-  { port :: Int
+data RunnerConfiguration = MakeRunnerConfiguration
+  { port :: Maybe Int,
+    host :: Maybe HostPreference
   }
   deriving stock (Generic)
-  deriving anyclass (FromJSON, ToJSON)
 
-newtype Runner = Runner {_run :: IO ()}
+instance FromJSON RunnerConfiguration where
+  parseJSON = withObject "RunnerConfiguration" \o -> do
+    port <- o .:? fromString "port"
+    hostText <- o .:? fromString "host"
+    pure MakeRunnerConfiguration
+      { port,
+        host = fromString . Text.unpack <$> hostText
+      }
 
-makeRunner ::
-  RunnerConf ->
+instance ToJSON RunnerConfiguration where
+  toJSON MakeRunnerConfiguration {port, host} =
+    object
+      [ fromString "port" .= port,
+        fromString "host" .= (Text.pack . show <$> host)
+      ]
+
+makeSettings :: RunnerConfiguration -> Settings
+makeSettings MakeRunnerConfiguration { port, host } = 
+  defaultSettings 
+  & maybe id setPort port
+  & maybe id setHost host
+
+newtype Runner = MakeRunner {_run :: IO ()}
+
+make ::
+  Settings ->
   Application ->
   Runner
-makeRunner
-  RunnerConf {port}
-  Application {application} = Runner {_run}
+make
+  settings
+  MakeApplication {application} = MakeRunner {_run}
     where
-      _run = Network.Wai.Handler.Warp.run port application
+      _run = Network.Wai.Handler.Warp.runSettings settings application
 
 run :: Runner -> IO ()
-run Runner {_run} = _run
+run MakeRunner {_run} = _run
 
 decorate :: (forall x. IO x -> IO x) -> Runner -> Runner
-decorate f Runner {_run} = Runner {_run = f _run}
+decorate f MakeRunner {_run} = MakeRunner {_run = f _run}
