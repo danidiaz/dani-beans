@@ -102,13 +102,13 @@ library resource-pool
     ghc-options:      -Wall -fwarn-tabs
     visibility: public
 
-library sqlite
+library sqlite-pool
     import:
         language,
         warnings,
         base
     exposed-modules:
-        Sqlite.Bean
+        Sqlite.Pool
     build-depends:
         aeson,
         text,
@@ -117,5 +117,5 @@ library sqlite
         resource-pool,
         dani-beans:resource-pool,
         dani-beans:thread-local,
-    hs-source-dirs:   lib-sqlite
+    hs-source-dirs:   lib-sqlite-pool
     visibility:       public

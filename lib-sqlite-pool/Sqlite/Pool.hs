@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Allocating connections that might me used down the hierarchy of calls.
-module Sqlite.Bean
+module Sqlite.Pool
   ( withConnection,
     hoistWithConnection,
     withLazilyAllocatedConnection,
