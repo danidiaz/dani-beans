@@ -15,16 +15,19 @@ module Network.Wai.Handler.Warp.Runner
 where
 
 import Data.Aeson
+import Data.Function ((&))
 import Data.String (fromString)
 import Data.Text qualified as Text
 import GHC.Generics (Generic)
 import Network.Wai.Application
-import Network.Wai.Handler.Warp (Settings, defaultSettings, 
-          setPort, 
-          setHost,
-          HostPreference)
+import Network.Wai.Handler.Warp
+  ( HostPreference,
+    Settings,
+    defaultSettings,
+    setHost,
+    setPort,
+  )
 import Network.Wai.Handler.Warp qualified
-import Data.Function ((&))
 
 data RunnerConfig = MakeRunnerConfig
   { port :: Maybe Int,
@@ -36,10 +39,11 @@ instance FromJSON RunnerConfig where
   parseJSON = withObject "RunnerConfig" \o -> do
     port <- o .:? fromString "port"
     hostText <- o .:? fromString "host"
-    pure MakeRunnerConfig
-      { port,
-        host = fromString . Text.unpack <$> hostText
-      }
+    pure
+      MakeRunnerConfig
+        { port,
+          host = fromString . Text.unpack <$> hostText
+        }
 
 instance ToJSON RunnerConfig where
   toJSON MakeRunnerConfig {port, host} =
@@ -49,10 +53,10 @@ instance ToJSON RunnerConfig where
       ]
 
 makeSettings :: RunnerConfig -> Settings
-makeSettings MakeRunnerConfig { port, host } = 
-  defaultSettings 
-  & maybe id setPort port
-  & maybe id setHost host
+makeSettings MakeRunnerConfig {port, host} =
+  defaultSettings
+    & maybe id setPort port
+    & maybe id setHost host
 
 newtype Runner = MakeRunner {_run :: IO ()}
 

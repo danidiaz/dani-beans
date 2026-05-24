@@ -6,12 +6,12 @@ module JsonConfig.YamlFile
   )
 where
 
-import JsonConfig
 import Control.Exception
 import Data.Aeson.KeyMap (KeyMap)
 import Data.Aeson.KeyMap qualified
 import Data.Aeson.Types
 import Data.Yaml.Config
+import JsonConfig
 
 make ::
   -- | Usually pass the result of 'Data.Yaml.Config.loadYamlSettings' here.
