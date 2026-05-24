@@ -1,12 +1,12 @@
 {-# LANGUAGE BlockArguments #-}
 
-module JsonConf.YamlFile
+module JsonConfiguration.YamlFile
   ( make,
     module Data.Yaml.Config,
   )
 where
 
-import JsonConf
+import JsonConfiguration
 import Control.Exception
 import Control.Monad.IO.Class
 import Data.Aeson (Value)
@@ -18,15 +18,15 @@ import Data.Yaml.Config
 make ::
   -- | Usually pass the result of 'Data.Yaml.Config.loadYamlSettings' here.
   IO (KeyMap Value) ->
-  IO JsonConf
+  IO JsonConfiguration
 make action = do
   keyMap :: KeyMap Value <- action
   pure
-    JsonConf
+    JsonConfiguration
       { lookupSectionWith_ = \parser sectionKey -> do
           case Data.Aeson.KeyMap.lookup sectionKey keyMap of
-            Nothing -> throwIO do JsonConfMissingSection sectionKey
+            Nothing -> throwIO do MissingSection sectionKey
             Just foo -> case parse parser foo of
-              Error message -> throwIO do JsonConfUnparseableSection sectionKey message
+              Error message -> throwIO do UnparseableSection sectionKey message
               Success confSection -> pure confSection
       }

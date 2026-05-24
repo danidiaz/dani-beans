@@ -22,7 +22,7 @@ common base
     build-depends:
         base       >= 4.16.0.0 && < 5,
 
-library threadlocal
+library thread-local
     import:           
         language,
         warnings,
@@ -34,25 +34,25 @@ library threadlocal
         bytestring,
         containers,
         unordered-containers,
-    hs-source-dirs:   lib-threadlocal
+    hs-source-dirs:   lib-thread-local
     ghc-options: -threaded
     visibility:      public
 
-library jsonconf
+library json-configuration
     import:           
         language,
         warnings,
         base
-    exposed-modules:  
-        JsonConf
-        JsonConf.YamlFile
+    exposed-modules:
+        JsonConfiguration
+        JsonConfiguration.YamlFile
     build-depends:
         text,
         bytestring,
         containers,
         aeson,
         yaml,
-    hs-source-dirs:   lib-jsonconf
+    hs-source-dirs:   lib-json-configuration
     ghc-options: -threaded
     visibility:      public
 
