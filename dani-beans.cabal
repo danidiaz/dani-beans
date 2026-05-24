@@ -87,7 +87,7 @@ library warp
     visibility: public
 
 library resource-pool
-    import:           
+    import:
         language,
         warnings,
         base
@@ -101,3 +101,20 @@ library resource-pool
 
     ghc-options:      -Wall -fwarn-tabs
     visibility: public
+
+library sqlite
+    import:
+        language,
+        warnings,
+        base
+    exposed-modules:
+        Sqlite.Bean
+    build-depends:
+        aeson,
+        text,
+        dani-sqlite >= 0.1.1.0,
+        resource-pool,
+        dani-beans:resource-pool,
+        dani-beans:thread-local,
+    hs-source-dirs:   lib-sqlite
+    visibility:       public
