@@ -2,6 +2,9 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE NoFieldSelectors #-}
 
 module Network.Wai.Handler.Warp.Runner
   ( RunnerConfig (..),
@@ -35,22 +38,38 @@ data RunnerConfig = MakeRunnerConfig
   }
   deriving stock (Generic)
 
+data RunnerConfigJsonKeys = MakeRunnerConfigJsonKeys
+  { port :: Key,
+    host :: Key
+  }
+
+runnerConfigJsonKeys :: RunnerConfigJsonKeys
+runnerConfigJsonKeys =
+  MakeRunnerConfigJsonKeys
+    { port = fromString "port",
+      host = fromString "host"
+    }
+
 instance FromJSON RunnerConfig where
   parseJSON = withObject "RunnerConfig" \o -> do
-    port <- o .:? fromString "port"
-    hostText <- o .:? fromString "host"
+    port <- o .:? keys.port
+    hostText <- o .:? keys.host
     pure
       MakeRunnerConfig
         { port,
           host = fromString . Text.unpack <$> hostText
         }
+    where
+      keys = runnerConfigJsonKeys
 
 instance ToJSON RunnerConfig where
   toJSON MakeRunnerConfig {port, host} =
     object
-      [ fromString "port" .= port,
-        fromString "host" .= (Text.pack . show <$> host)
+      [ keys.port .= port,
+        keys.host .= (Text.pack . show <$> host)
       ]
+    where
+      keys = runnerConfigJsonKeys
 
 makeSettings :: RunnerConfig -> Settings
 makeSettings MakeRunnerConfig {port, host} =

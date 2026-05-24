@@ -73,6 +73,6 @@ make :: forall r. IO r -> (r -> IO ()) -> PoolConfig -> forall x. (Pool.Pool r -
 make alloc dealloc MakePoolConfig {unusedResourceTtlSeconds, poolSize, numStripes, poolLabel} continuation = do
   let poolConfig =
         maybe id Pool.setPoolLabel poolLabel $
-          Pool.setNumStripes numStripes $
+          maybe id (Pool.setNumStripes . Just) numStripes $
             Pool.defaultPoolConfig alloc dealloc unusedResourceTtlSeconds poolSize
   bracket (Pool.newPool poolConfig) Pool.destroyAllResources continuation
