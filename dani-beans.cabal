@@ -113,6 +113,7 @@ library sqlite
         aeson,
         text,
         dani-sqlite >= 0.1.1.0,
+        lazy-bracket,
         resource-pool,
         dani-beans:resource-pool,
         dani-beans:thread-local,
