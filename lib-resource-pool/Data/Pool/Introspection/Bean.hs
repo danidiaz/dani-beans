@@ -1,15 +1,16 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE NumDecimals #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NumDecimals #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
 module Data.Pool.Introspection.Bean
   ( PoolConfig (..),
     Pool.Pool,
-    Pool.Resource,
+    Pool.Resource (..),
     make,
   )
 where
@@ -31,26 +32,47 @@ data PoolConfig = MakePoolConfig
   }
   deriving stock (Generic)
 
+data PoolConfigJsonKeys = MakePoolConfigJsonKeys
+  { poolSize :: Key,
+    unusedResourceTtlSeconds :: Key,
+    numStripes :: Key,
+    poolLabel :: Key
+  }
+
+poolConfigJsonKeys :: PoolConfigJsonKeys
+poolConfigJsonKeys =
+  MakePoolConfigJsonKeys
+    { poolSize = fromString "pool_size",
+      unusedResourceTtlSeconds = fromString "unused_resource_ttl_seconds",
+      numStripes = fromString "num_stripes",
+      poolLabel = fromString "pool_label"
+    }
+
 instance FromJSON PoolConfig where
   parseJSON = withObject "PoolConfig" \o -> do
-    poolSize <- o .: fromString "pool_size"
-    unusedResourceTtlSeconds <- o .: fromString "unused_resource_ttl_seconds"
-    numStripes <- o .:? fromString "num_stripes"
-    poolLabel <- o .:? fromString "pool_label"
+    poolSize <- o .: keys.poolSize
+    unusedResourceTtlSeconds <- o .: keys.unusedResourceTtlSeconds
+    numStripes <- o .:? keys.numStripes
+    poolLabel <- o .:? keys.poolLabel
     pure MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes, poolLabel}
+    where
+      keys = poolConfigJsonKeys
 
 instance ToJSON PoolConfig where
   toJSON MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes, poolLabel} =
     object
-      [ fromString "pool_size" .= poolSize,
-        fromString "unused_resource_ttl_seconds" .= unusedResourceTtlSeconds,
-        fromString "num_stripes" .= numStripes,
-        fromString "pool_label" .= poolLabel
+      [ keys.poolSize .= poolSize,
+        keys.unusedResourceTtlSeconds .= unusedResourceTtlSeconds,
+        keys.numStripes .= numStripes,
+        keys.poolLabel .= poolLabel
       ]
+    where
+      keys = poolConfigJsonKeys
 
 make :: forall r. IO r -> (r -> IO ()) -> PoolConfig -> forall x. (Pool.Pool r -> IO x) -> IO x
 make alloc dealloc MakePoolConfig {unusedResourceTtlSeconds, poolSize, numStripes, poolLabel} continuation = do
-  let poolConfig = maybe id Pool.setPoolLabel poolLabel
-                     $ Pool.setNumStripes numStripes
-                     $ Pool.defaultPoolConfig alloc dealloc unusedResourceTtlSeconds poolSize
+  let poolConfig =
+        maybe id Pool.setPoolLabel poolLabel $
+          Pool.setNumStripes numStripes $
+            Pool.defaultPoolConfig alloc dealloc unusedResourceTtlSeconds poolSize
   bracket (Pool.newPool poolConfig) Pool.destroyAllResources continuation
