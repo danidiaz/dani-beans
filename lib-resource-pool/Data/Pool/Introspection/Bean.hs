@@ -24,7 +24,8 @@ import GHC.Generics (Generic)
 -- the configuration file.
 data PoolConfig = MakePoolConfig
   { poolSize :: Int,
-    unusedResourceTtlSeconds :: Double
+    unusedResourceTtlSeconds :: Double,
+    numStripes :: Maybe Int
   }
   deriving stock (Generic)
 
@@ -32,16 +33,19 @@ instance FromJSON PoolConfig where
   parseJSON = withObject "PoolConfig" \o -> do
     poolSize <- o .: fromString "pool_size"
     unusedResourceTtlSeconds <- o .: fromString "unused_resource_ttl_seconds"
-    pure MakePoolConfig {poolSize, unusedResourceTtlSeconds}
+    numStripes <- o .:? fromString "num_stripes"
+    pure MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes}
 
 instance ToJSON PoolConfig where
-  toJSON MakePoolConfig {poolSize, unusedResourceTtlSeconds} =
+  toJSON MakePoolConfig {poolSize, unusedResourceTtlSeconds, numStripes} =
     object
       [ fromString "pool_size" .= poolSize,
-        fromString "unused_resource_ttl_seconds" .= unusedResourceTtlSeconds
+        fromString "unused_resource_ttl_seconds" .= unusedResourceTtlSeconds,
+        fromString "num_stripes" .= numStripes
       ]
 
 make :: forall r. IO r -> (r -> IO ()) -> PoolConfig -> forall x. (Pool.Pool r -> IO x) -> IO x
-make alloc dealloc MakePoolConfig {unusedResourceTtlSeconds, poolSize} continuation = do
-  let poolConfig = Pool.defaultPoolConfig alloc dealloc unusedResourceTtlSeconds poolSize
+make alloc dealloc MakePoolConfig {unusedResourceTtlSeconds, poolSize, numStripes} continuation = do
+  let poolConfig = Pool.setNumStripes numStripes
+                     (Pool.defaultPoolConfig alloc dealloc unusedResourceTtlSeconds poolSize)
   bracket (Pool.newPool poolConfig) Pool.destroyAllResources continuation
